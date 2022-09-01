@@ -11,7 +11,7 @@ import torch.optim as optim
 from torch.utils.data import  DataLoader
 from sklearn.metrics import r2_score
 import statsmodels.api as sm
-from SWNN import GNNWR
+from SWNN import SWNN
 
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 
@@ -32,9 +32,7 @@ def process_df(my_set, varName):
 
 
     temp_df['label'] = dataset[varName[0]]
-
     temp_df['beta'] = np.ones(dataset.shape[0])
-
     temp_df[varName[1:4]] = dataset[varName[1:4]]
 
     alist = dataset.lon
@@ -118,11 +116,11 @@ def val(epoch):
         out_li = np.array(out_li).reshape(-1)
         if epoch % 100 == 0:
             r2 = r2_score(out_li, label_li)
-        #print(out_li)
         print('\r Epoch: {} \tValidation Loss: {:.6f} \tR2: {:.6f}'.format(epoch, val_loss, r2))
 
 
 varName = ['fCO2', 'Chl', 'Temp', 'Salt']
+batch_size = 128
 
 dataset = pd.read_csv("D://CO2_data3.csv", encoding="utf-8")
 dataset = dataset.dropna()
@@ -165,10 +163,10 @@ for i in range(0, len(varName), 1):
 
 train_data = MYDataset(process_df(my_set=train_set, varName=varName))
 test_data = MYDataset(process_df(my_set=test_set, varName=varName))
-train_loader = DataLoader(train_data, batch_size=50, shuffle=True, num_workers=0, drop_last=True)
-test_loader = DataLoader(test_data, batch_size=50, shuffle=False, num_workers=0)
+train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True, num_workers=0, drop_last=True)
+test_loader = DataLoader(test_data, batch_size=batch_size, shuffle=False, num_workers=0)
 
-model = GNNWR(outsize=4)
+model = SWNN(outsize=4)
 criterion = nn.MSELoss()
 optimizer = optim.SGD(model.parameters(), lr=0.1)
 
