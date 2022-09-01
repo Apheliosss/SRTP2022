@@ -25,11 +25,8 @@ def compute_distances(P, C):
 def process_df(my_set, varName):
     temp_df = pd.DataFrame()
 
-
     dataset = my_set.reset_index(drop=True)
     ycor = dataset.lat
-    #ycor = dataset.lon
-
 
     temp_df['label'] = dataset[varName[0]]
     temp_df['beta'] = np.ones(dataset.shape[0])
@@ -161,8 +158,8 @@ for i in range(0, len(varName), 1):
     train_set.loc[:, varName[i]] = (train_set[varName[i]].copy() - mean_li[i] + 1.0) / std_li[i]
     test_set.loc[:, varName[i]] = (test_set[varName[i]].copy() - mean_li[i] + 1.0) / std_li[i]
 
-train_data = MYDataset(process_df(my_set=train_set, varName=varName))
-test_data = MYDataset(process_df(my_set=test_set, varName=varName))
+train_data = MYDataset(process_df(my_set=train_set, varName=varName), len(varName))
+test_data = MYDataset(process_df(my_set=test_set, varName=varName), len(varName))
 train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True, num_workers=0, drop_last=True)
 test_loader = DataLoader(test_data, batch_size=batch_size, shuffle=False, num_workers=0)
 

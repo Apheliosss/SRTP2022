@@ -2,10 +2,10 @@ import torch
 from torch.utils.data import Dataset
 
 class MYDataset(Dataset):
-    def __init__(self, df):
+    def __init__(self, df, varNum):
         self.df = df
-        self.images = df.iloc[:,5:].values
-        self.coef = df.iloc[:,1:5].values
+        self.images = df.iloc[:,varNum+1:].values
+        self.coef = df.iloc[:,1:varNum+1].values
         self.labels = df.iloc[:, 0].values
         
     def __len__(self):

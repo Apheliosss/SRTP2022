@@ -3,14 +3,14 @@ import math
 import torch.nn as nn
 class SWNN(nn.Module):
     def __init__(self, outsize):
-        super(GNNWR, self).__init__()
+        super(SWNN, self).__init__()
         self.outsize = outsize
         thissize = 0
         lastsize = 512
         i = 2
 
         self.fc = nn.Sequential()
-        self.fc.add_module("full"+str(1), nn.Linear(self.outsize, 600))
+        self.fc.add_module("full"+str(1), nn.Linear(self.outsize, 512))
 
 
         while math.pow(2, int(math.log2(lastsize))) >= max(128, outsize + 1):
