@@ -17,7 +17,6 @@ os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 
 def compute_distances(P, C):
     A = (P**2).sum(axis=1, keepdims=True)
- 
     B = (C**2).sum(axis=1, keepdims=True).T
  
     return np.sqrt(A + B - 2* np.dot(P, C.T))
@@ -86,6 +85,7 @@ def val(epoch):
     model.eval()
     global out
     global r2
+    global best_loss
     val_loss = 0
 
     label_li = np.array([])
@@ -109,6 +109,9 @@ def val(epoch):
 
             val_loss += loss.item()*data.size(0)
         val_loss = val_loss/len(test_loader.dataset)
+        if val_loss < best_loss:
+            best_loss = val_loss
+            torch.save(model, "model.pkl")
         label_li = np.array(label_li).reshape(-1)
         out_li = np.array(out_li).reshape(-1)
         if epoch % 100 == 0:
@@ -117,6 +120,7 @@ def val(epoch):
 
 
 varName = ['fCO2', 'Chl', 'Temp', 'Salt']
+varNum = len(varName)
 batch_size = 128
 
 dataset = pd.read_csv("D://CO2_data3.csv", encoding="utf-8")
@@ -147,19 +151,19 @@ test_set  = dataset.iloc[test_li,  :]
 mean_li = []
 std_li = []
 
-for i in range(0, len(varName), 1):
+for i in range(0, varNum, 1):
     mean_li.append(train_set[varName[i]].mean())
     std_li.append(train_set[varName[i]].std())
 
 train_set = train_set.copy()
 test_set = test_set.copy()
 
-for i in range(0, len(varName), 1):
+for i in range(0, varNum, 1):
     train_set.loc[:, varName[i]] = (train_set[varName[i]].copy() - mean_li[i] + 1.0) / std_li[i]
     test_set.loc[:, varName[i]] = (test_set[varName[i]].copy() - mean_li[i] + 1.0) / std_li[i]
 
-train_data = MYDataset(process_df(my_set=train_set, varName=varName), len(varName))
-test_data = MYDataset(process_df(my_set=test_set, varName=varName), len(varName))
+train_data = MYDataset(process_df(my_set=train_set, varName=varName), varNum)
+test_data = MYDataset(process_df(my_set=test_set, varName=varName), varNum)
 train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True, num_workers=0, drop_last=True)
 test_loader = DataLoader(test_data, batch_size=batch_size, shuffle=False, num_workers=0)
 
@@ -167,15 +171,19 @@ model = SWNN(outsize=4)
 criterion = nn.MSELoss()
 optimizer = optim.SGD(model.parameters(), lr=0.1)
 
+relation = str()
+relation = varName[0]+'~'+varName[1]
+for i in range(2, len(varName), 1):
+    relation = relation + '+' + varName[i]
+fit=sm.formula.ols(relation,data=train_set).fit()
+
 r2 = 0
+best_loss = 2
 weightlist = []
-for i in range(1,2):
-    temp = []
-    temp.append(-0.172075)
-    temp.append(-0.175203)
-    temp.append(0.294790)
-    temp.append(0.385374)
-    weightlist.append(temp)
+temp = []
+for j in fit.params:
+    temp.append(j)
+weightlist.append(temp)
 out = nn.Linear(4, 1, bias = False)
 out.weight = nn.Parameter(torch.tensor(weightlist), requires_grad=False)
 
