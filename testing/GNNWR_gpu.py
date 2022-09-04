@@ -136,14 +136,8 @@ dataset = dataset[dataset.month == '7']
 train_li = random.sample([i for i in range(0, dataset.shape[0])], int(0.8 * dataset.shape[0]))
 train_li.sort()
 
-j = 0
-test_li = []
-
-for i in range(0, dataset.shape[0], 1):
-    if i != train_li[j] | j >= len(train_li):
-        test_li.append(i)
-    else:
-        j = j + 1
+test_li = list(set([i for i in range(0, dataset.shape[0])]) - set(train_li))
+test_li.sort()
 
 train_set = dataset.iloc[train_li, :]
 test_set  = dataset.iloc[test_li,  :]
@@ -172,9 +166,7 @@ criterion = nn.MSELoss()
 optimizer = optim.SGD(model.parameters(), lr=0.1)
 
 relation = str()
-relation = varName[0]+'~'+varName[1]
-for i in range(2, len(varName), 1):
-    relation = relation + '+' + varName[i]
+relation = varName[0]+"~" + "+".join(varName[1:varNum])
 fit=sm.formula.ols(relation,data=train_set).fit()
 
 r2 = 0
