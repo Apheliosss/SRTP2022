@@ -178,6 +178,7 @@ for j in fit.params:
 weightlist.append(temp)
 out = nn.Linear(4, 1, bias = False)
 out.weight = nn.Parameter(torch.tensor(weightlist), requires_grad=False)
+out = out.cuda()
 
 for epoch in tqdm(range(1, 1000+1)):
     train(epoch)
