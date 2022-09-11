@@ -25,29 +25,21 @@ def process_df(my_set, varName):
     temp_df = pd.DataFrame()
 
     dataset = my_set.reset_index(drop=True)
-    ycor = dataset.lat
 
     temp_df['label'] = dataset[varName[0]]
     temp_df['beta'] = np.ones(dataset.shape[0])
     temp_df[varName[1:4]] = dataset[varName[1:4]]
 
-    alist = dataset.lon
-    temp = []
-    for i in alist:
-        if i < 0:
-            i = i+360
-        temp.append(i)
-    xcor = temp
-
     cor_df = pd.DataFrame()
-    cor_df['xcor'] = xcor
-    cor_df['ycor'] = ycor
 
-    a = [[110.0, 0.0], [290.0,0.0], [110.0, 70.0], [290.0, 70.0]]
-    b = np.array(a)
+    dataset['lon'][dataset['lon'] < 0] = dataset['lon'][dataset['lon'] < 0].copy() + 360.0
+    cor_df['xcor'] = dataset['lon']
+    cor_df['ycor'] = dataset['lat']
+
+    sample_pt = np.array([[110.0, 0.0], [290.0,0.0], [110.0, 70.0], [290.0, 70.0]])
 
     cor_li = cor_df.to_numpy()
-    dis_li = compute_distances(cor_li, b)
+    dis_li = compute_distances(cor_li, sample_pt)
     dis_df = pd.DataFrame(dis_li)
     temp_df = temp_df.join(dis_df)
 
